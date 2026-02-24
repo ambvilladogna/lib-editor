@@ -1,0 +1,327 @@
+/* ============================================
+   PAGE-SPECIFIC OVERRIDES & CUSTOM STYLES
+   ============================================ */
+
+/* OVERRIDE: Custom color palette for mycological library theme */
+:root {
+    --color-primary: #8b6f47;
+    /* mushroom brown - overrides default green */
+    --color-primary-light: #c17a3f;
+    /* accent - overrides light green */
+    --color-accent: #d4a574;
+    /* spore color - kept from original */
+    --color-bg: #f9f7f1;
+    /* paper texture - overrides white */
+    --color-text: #2a2419;
+    /* ink - overrides default gray */
+    --color-text-light: #4a5f3a;
+    /* moss - for labels */
+    --color-border: #e0ddd5;
+    /* subtle border */
+    --color-star-filled: #d4a574;
+    /* filled star color */
+    --color-star-empty: #e0ddd5;
+    /* empty star color */
+}
+
+/* OVERRIDE: Custom serif fonts for library aesthetic */
+body {
+    font-family: 'Crimson Pro', serif;
+}
+
+/* Custom header styling for library */
+header {
+    border-bottom: 3px solid var(--color-primary);
+    padding-bottom: 30px;
+    margin-bottom: 40px;
+}
+
+.header__logo {
+    font-family: 'Crimson Pro', serif;
+    font-size: 2.2rem;
+}
+
+h1 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 3.5rem;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: var(--color-text-light);
+    font-style: italic;
+}
+
+/* Search and filter controls - Updated structure */
+.controls {
+    margin-bottom: 30px;
+}
+
+.search-row {
+    margin-bottom: 20px;
+}
+
+input[type="search"] {
+    width: 100%;
+    padding: 12px 18px;
+    border: 2px solid var(--color-primary);
+    background: white;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    border-radius: 0;
+}
+
+input[type="search"]:focus {
+    outline: none;
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 3px rgba(193, 122, 63, 0.1);
+}
+
+.filters-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.filter-tags,
+.filter-ratings {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tag-filter {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1.5px solid var(--color-text-light);
+    color: var(--color-text-light);
+    cursor: pointer;
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.tag-filter:hover {
+    background: lightgray;
+    color: var(--color-bg);
+}
+
+.tag-filter.active {
+    background: var(--color-text-light);
+    color: var(--color-bg);
+    border-color: var(--color-text-light);
+}
+
+.rating-filter {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1.5px solid var(--color-accent);
+    color: var(--color-accent);
+    cursor: pointer;
+    font-family: 'Crimson Pro', serif;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.rating-filter:hover {
+    background: lightgray;
+    color: var(--color-text);
+}
+
+.rating-filter.active {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+}
+
+.stats {
+    font-size: 0.95rem;
+    color: var(--color-primary);
+    padding: 8px 0;
+}
+
+/* Books grid - uses shared .grid as base */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 25px;
+}
+
+/* CUSTOM: Book card with distinctive left border accent */
+.book-card {
+    background: white;
+    border: 1px solid var(--color-border);
+    padding: 24px;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 2px 2px 8px rgba(42, 36, 25, 0.08);
+}
+
+.book-card:hover {
+    box-shadow: 4px 4px 16px rgba(42, 36, 25, 0.15);
+    transform: translateY(-2px);
+}
+
+.book-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: var(--color-accent);
+    transition: background 0.3s;
+}
+
+.book-card:hover::before {
+    background: var(--color-primary-light);
+}
+
+/* Book header with title and rating */
+.book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.book-series {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.3rem;
+    color: var(--color-text);
+    line-height: 1.3;
+    flex: 1;
+}
+
+/* Star rating display on cards */
+.book-rating {
+    display: flex;
+    gap: 2px;
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.book-rating .star--filled {
+    color: var(--color-star-filled);
+}
+
+.book-rating .star--empty {
+    color: var(--color-star-empty);
+}
+
+.book-volume {
+    font-size: 1rem;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+    font-style: italic;
+}
+
+.book-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e8e5dd;
+    font-size: 0.95rem;
+}
+
+.meta-row {
+    display: flex;
+    gap: 8px;
+}
+
+.meta-label {
+    font-weight: 600;
+    color: var(--color-text-light);
+    min-width: 70px;
+}
+
+.meta-value {
+    color: var(--color-text);
+}
+
+.book-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.tag {
+    padding: 3px 10px;
+    background: var(--color-accent);
+    color: var(--color-text);
+    font-size: 0.85rem;
+    border-radius: 2px;
+}
+
+.copies-tag {
+    padding: 3px 10px;
+    background: var(--color-text-light);
+    color: white;
+    font-size: 0.85rem;
+    border-radius: 2px;
+}
+
+/*
+.copies-badge {
+    position: absolute;
+    top: 48px;
+    right: 16px;
+    background: var(--color-text-light);
+    color: white;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+*/
+
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-primary);
+    font-size: 1.2rem;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    .books-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+}

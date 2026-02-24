@@ -12,20 +12,17 @@ The editor works **directly on a local clone** of that repo — no intermediate 
 
 | Repo | Purpose |
 |------|---------|
-| `ambvilladogna/risorse` (GitHub Pages) | Static website — the "deployment target" |
-| `editor/` (this project) | Bun app for editing the catalogue |
+| `biblioteca` (GitHub Pages) | Static website — the "deployment target" |
+| `lib-editor/` (this project) | Bun app for editing the catalogue |
 
 The two repos are **siblings on disk** (or wherever `SITE_REPO_PATH` points).
 
 ---
 
 ## Folder Structure
-
 ```
-project-root/
-├── .env                        # environment config (see below)
-│
-└── editor/
+── lib-editor/
+    ├── .env                     # environment config
     ├── package.json
     ├── bunfig.toml              # optional Bun config (port, etc.)
     ├── server.ts                # entry point — Bun.serve()
@@ -43,25 +40,6 @@ project-root/
         └── index.html           # editor frontend (vanilla JS, no framework)
 ```
 
----
-
-## Environment Variables (`.env`)
-
-```env
-# Absolute or relative path to the local clone of the GitHub Pages repo
-SITE_REPO_PATH=../risorse
-
-# Path to books.json inside that repo
-BOOKS_DATA_PATH=biblioteca/_site/data/books.json
-
-# Path to config.json inside that repo
-CONFIG_DATA_PATH=biblioteca/_site/data/config.json
-
-# Port for the editor server
-PORT=3000
-```
-
----
 
 ## Data Files
 
@@ -139,17 +117,6 @@ Both files live inside the GitHub Pages repo clone at the paths above.
 | `dotenv` package | Built-in: Bun auto-loads `.env` |
 | `ts-node` | Not needed: `bun run server.ts` runs TS natively |
 
----
-
-## Development
-
-```bash
-cd editor
-bun install
-bun run --hot server.ts    # hot reload during development
-```
-
----
 
 ## Sync Flow (git)
 
@@ -166,10 +133,3 @@ POST /api/sync/push  { message: "Update catalogue" }
 ```
 
 Auth for push relies on the **local git config** of the machine (SSH key or credential helper) — the app does not manage credentials.
-
----
-
-## Current Status
-
-> Architecture defined. No code written yet.  
-> Next step: scaffold `package.json`, `server.ts`, and `lib/db.ts`.

@@ -196,5 +196,34 @@ ratingFilters.forEach(button => {
     });
 });
 
+// ── Startup status ─────────────────────────────────────────────────────────
+// Called once on page load. Reads the result of the server's startup git pull
+// and surfaces it as a notification so it's visible in the UI, not just the
+// server console.
+
+async function checkStartupStatus() {
+    try {
+        const res = await fetch('/api/status');
+        if (!res.ok) return;                      // silent fail — not critical
+        const status = await res.json();
+
+        if (!status.checked) return;              // server didn't set it yet
+
+        if (!status.success) {
+            notify.warn(
+                "Sincronizzazione iniziale non riuscita.",
+                {
+                    duration: 0,                        // sticky — operator must see this
+                    detail: status.error ?? "I dati locali potrebbero non essere aggiornati. Riavvia l'app dopo aver risolto il conflitto.",
+                }
+            );
+        }
+        // On success: no noise — a clean pull is the expected state.
+    } catch {
+        // Network error fetching /api/status — not worth alarming the user.
+    }
+}
+
 // Initialize on page load
+checkStartupStatus();
 loadData();

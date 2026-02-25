@@ -1,0 +1,179 @@
+/* ============================================
+   NOTIFICATION TOASTS — notify.js styles
+   Archival / library card aesthetic
+   ============================================ */
+
+/* Stack anchored to top-right, above everything */
+.notify-container {
+  position: fixed;
+  top: calc(var(--header-height, 80px) + 16px);
+  right: 20px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;        /* container itself is click-through */
+  max-width: min(420px, calc(100vw - 40px));
+}
+
+/* ── Wrapper: handles slide-in / slide-out ── */
+
+.notify-wrapper {
+  pointer-events: auto;
+  transform: translateX(calc(100% + 24px));
+  opacity: 0;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.28, 0.64, 1),
+    opacity   0.25s ease;
+}
+
+.notify-wrapper--visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.notify-wrapper--leaving {
+  transform: translateX(calc(100% + 24px));
+  opacity: 0;
+  transition:
+    transform 0.28s cubic-bezier(0.55, 0, 1, 0.45),
+    opacity   0.22s ease;
+}
+
+/* ── Toast card ── */
+
+.notify-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #faf8f3;           /* aged paper */
+  border: 1px solid var(--color-border, #e0ddd5);
+  border-left: 4px solid var(--color-accent, #d4a574);
+  padding: 14px 16px;
+  box-shadow:
+    3px 3px 0 rgba(42, 36, 25, 0.06),
+    0 4px 16px rgba(42, 36, 25, 0.12);
+  font-family: 'Crimson Pro', serif;
+  font-size: 1rem;
+  color: var(--color-text, #2a2419);
+  position: relative;
+}
+
+/* Type-specific left border colour */
+.notify-toast--success { border-left-color: #5a8a5a; }
+.notify-toast--error   { border-left-color: #a94442; }
+.notify-toast--warn    { border-left-color: #c17a3f; }
+.notify-toast--info    { border-left-color: #4a7a9b; }
+
+/* ── Icon stamp ── */
+
+.notify-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.notify-toast--success .notify-icon { color: #5a8a5a; }
+.notify-toast--error   .notify-icon { color: #a94442; }
+.notify-toast--warn    .notify-icon { color: #c17a3f; }
+.notify-toast--info    .notify-icon { color: #4a7a9b; }
+
+/* ── Text block ── */
+
+.notify-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.notify-message {
+  line-height: 1.45;
+}
+
+.notify-detail {
+  font-size: 0.875rem;
+  color: var(--color-text-light, #4a5f3a);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* ── Action buttons ── */
+
+.notify-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.notify-action-btn {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1.5px solid var(--color-primary, #8b6f47);
+  color: var(--color-primary, #8b6f47);
+  font-family: 'Crimson Pro', serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.notify-action-btn:hover {
+  background: var(--color-primary, #8b6f47);
+  color: #faf8f3;
+}
+
+/* ── Close button ── */
+
+.notify-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-light, #4a5f3a);
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0;
+  margin-top: -1px;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+
+.notify-close:hover {
+  opacity: 1;
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .notify-wrapper,
+  .notify-wrapper--visible,
+  .notify-wrapper--leaving {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+  .notify-wrapper--leaving {
+    display: none;
+  }
+}
+
+/* ── Mobile: stack from top, full-width ── */
+
+@media (max-width: 480px) {
+  .notify-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}

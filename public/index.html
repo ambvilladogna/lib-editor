@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Libre+Baskerville:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+
     <!-- Shared CSS -->
     <link rel="stylesheet" href="shared/css/variables.css">
     <link rel="stylesheet" href="shared/css/reset.css">
@@ -20,6 +20,7 @@
     <!-- Page-specific CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/notify.css">
+    <link rel="stylesheet" href="css/editor.css">
 </head>
 
 <body>
@@ -42,17 +43,13 @@
             <div class="filters-row">
                 <!-- Tag filters -->
                 <div class="filter-group">
-                    <!-- <span class="filter-label">Categorie:</span> -->
                     <div class="filter-tags" id="filter-tags">
-                        <!-- tags will be inserted here by JavaScript 
-                    <button class="tag-filter" data-tag="monografia">Monografie</button>
-                    -->
+                        <!-- tags will be inserted here by JavaScript -->
                     </div>
                 </div>
 
                 <!-- Rating filters -->
                 <div class="filter-group">
-                    <!-- <span class="filter-label">Valutazione:</span> -->
                     <div class="filter-ratings">
                         <button class="rating-filter" data-rating="3" title="Consigliati">
                             <span class="star">★★★</span>
@@ -96,19 +93,10 @@
                     <h3>Risorse</h3>
                     <ul>
                         <li><a href="https://ambvilladogna.github.io/risorse/">Risorse Home</a></li>
-                        <li><a
-                                href="https://ambvilladogna.github.io/risorse/aggiornamenti-nomenclatura/_site/index.html">Aggiornamenti
-                                Nomenclatura</a>
-                        <li><a href="https://ambvilladogna.github.io/risorse/biblioteca/_site/index.html">Biblioteca</a>
-                        </li>
-                        <li><a href="https://ambvilladogna.github.io/risorse/fungi-census/_site/index.html">Specie
-                                fungine
-                                della Valseriana</a></li>
-                        </li>
-                        <li><a href="https://ambvilladogna.github.io/risorse/fungi-census/_site/index.html">Specie
-                                fungine
-                                della Pineta di Clusone</a></li>
-                        </li>
+                        <li><a href="https://ambvilladogna.github.io/risorse/aggiornamenti-nomenclatura/_site/index.html">Aggiornamenti Nomenclatura</a></li>
+                        <li><a href="https://ambvilladogna.github.io/risorse/biblioteca/_site/index.html">Biblioteca</a></li>
+                        <li><a href="https://ambvilladogna.github.io/risorse/fungi-census/_site/index.html">Specie fungine della Valseriana</a></li>
+                        <li><a href="https://ambvilladogna.github.io/risorse/fungi-census/_site/index.html">Specie fungine della Pineta di Clusone</a></li>
                     </ul>
                 </div>
                 <div class="footer__section">
@@ -118,7 +106,6 @@
                     </ul>
                 </div>
             </div>
-
         </div>
         <div class="footer__bottom">
             <p>2026 - Associazione Micologica Bresadola - Gruppo di Villa d'Ogna</p>
@@ -126,8 +113,9 @@
     </footer>
 
     <script src="shared/js/common.js"></script>
-    <script src="js/script.js"></script>
     <script src="js/notify.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/script.js"></script>
 </body>
 
 </html>

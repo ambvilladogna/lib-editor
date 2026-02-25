@@ -54,8 +54,14 @@ async function loadData() {
         books = books.sort(advancedSort(['titolo', 'volume']));
         config = await configResponse.json();
 
+        // Expose shared state for editor.js
+        window._books = books;
+        window._config = config;
+        window._filterBooks = filterBooks;
+
         initializeFilters();
         renderBooks(books);
+        editor.init();
     } catch (error) {
         console.error('Error loading data:', error);
         booksGrid.innerHTML = '<p style="text-align: center; color: var(--color-primary);">Errore nel caricamento dei dati.</p>';
@@ -85,17 +91,19 @@ function renderBooks(filteredBooks) {
         filteredBooks.forEach(book => {
             const card = document.createElement('div');
             card.className = 'book-card';
+            card.dataset.bookId = book.id;  // needed by editor.js overlays
 
             const volumeDisplay = book.volume ? `<div class="book-volume">${book.volume}</div>` : '';
             const ratingStars = getRatingStars(book.rating);
 
             // add "copie" tag if there are multiple copies
-            if (book.copie > 1 && !book.tags?.some(tag => tag.includes("copie"))) {
-                book.tags = book.tags ? [...book.tags, `${book.copie} copie`] : [`${book.copie} copie`];
+            const displayTags = [...(book.tags ?? [])];
+            if (book.copie > 1 && !displayTags.some(tag => tag.includes("copie"))) {
+                displayTags.push(`${book.copie} copie`);
             }
 
-            const tagsHtml = book.tags.length > 0 ?
-                `<div class="book-tags">${book.tags.map(tag => `<span class="${tag.includes("copie") ? "copies-tag" : "tag"}">${tag}</span>`).join('')}</div>` : '';
+            const tagsHtml = displayTags.length > 0 ?
+                `<div class="book-tags">${displayTags.map(tag => `<span class="${tag.includes("copie") ? "copies-tag" : "tag"}">${tag}</span>`).join('')}</div>` : '';
 
             card.innerHTML = `
                 <div class="book-header">
@@ -116,6 +124,11 @@ function renderBooks(filteredBooks) {
     }
 
     visibleCount.textContent = filteredBooks.length;
+
+    // Attach hover overlays after each render
+    if (typeof editor !== 'undefined') {
+        editor.attachOverlays();
+    }
 }
 
 // Generate star rating HTML
@@ -196,32 +209,21 @@ ratingFilters.forEach(button => {
     });
 });
 
-// ── Startup status ─────────────────────────────────────────────────────────
-// Called once on page load. Reads the result of the server's startup git pull
-// and surfaces it as a notification so it's visible in the UI, not just the
-// server console.
+// ── Startup status ──────────────────────────────────────────────────────────
 
 async function checkStartupStatus() {
     try {
         const res = await fetch('/api/status');
-        if (!res.ok) return;                      // silent fail — not critical
+        if (!res.ok) return;
         const status = await res.json();
-
-        if (!status.checked) return;              // server didn't set it yet
-
+        if (!status.checked) return;
         if (!status.success) {
-            notify.warn(
-                "Sincronizzazione iniziale non riuscita.",
-                {
-                    duration: 0,                        // sticky — operator must see this
-                    detail: status.error ?? "I dati locali potrebbero non essere aggiornati. Riavvia l'app dopo aver risolto il conflitto.",
-                }
-            );
+            notify.warn('Sincronizzazione iniziale non riuscita.', {
+                duration: 0,
+                detail: status.error ?? 'I dati locali potrebbero non essere aggiornati. Riavvia l\'app dopo aver risolto il conflitto.',
+            });
         }
-        // On success: no noise — a clean pull is the expected state.
-    } catch {
-        // Network error fetching /api/status — not worth alarming the user.
-    }
+    } catch { /* silent */ }
 }
 
 // Initialize on page load

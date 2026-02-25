@@ -14,10 +14,6 @@ const totalCount = document.getElementById('totalCount');
 const noResults = document.getElementById('noResults');
 
 // Advanced sorting function that can handle multiple properties and sort directions
-// Example usage:
-// books = books.sort(advancedSort(['titolo', '-volume'])); 
-// Sort books by title (ascending) and volume (descending)
-//
 const advancedSort = (props) => {
     return (a, b) => {
         for (let prop of props) {
@@ -43,13 +39,16 @@ const advancedSort = (props) => {
     };
 };
 
-// Load data on page load
+// Load data on page load — now from the API
 async function loadData() {
     try {
         const [booksResponse, configResponse] = await Promise.all([
-            fetch('./data/books.json'),
-            fetch('./data/config.json')
+            fetch('/api/books'),
+            fetch('/api/config')
         ]);
+
+        if (!booksResponse.ok) throw new Error(`Books API: ${booksResponse.status}`);
+        if (!configResponse.ok) throw new Error(`Config API: ${configResponse.status}`);
 
         books = await booksResponse.json();
         books = books.sort(advancedSort(['titolo', 'volume']));
@@ -88,16 +87,13 @@ function renderBooks(filteredBooks) {
             card.className = 'book-card';
 
             const volumeDisplay = book.volume ? `<div class="book-volume">${book.volume}</div>` : '';
-
-            // Rating stars display
             const ratingStars = getRatingStars(book.rating);
 
-            // add "copie" tag if there are multiple copies and merge with existing tags
+            // add "copie" tag if there are multiple copies
             if (book.copie > 1 && !book.tags?.some(tag => tag.includes("copie"))) {
                 book.tags = book.tags ? [...book.tags, `${book.copie} copie`] : [`${book.copie} copie`];
             }
 
-            // format tags with special styling for "copie" tags
             const tagsHtml = book.tags.length > 0 ?
                 `<div class="book-tags">${book.tags.map(tag => `<span class="${tag.includes("copie") ? "copies-tag" : "tag"}">${tag}</span>`).join('')}</div>` : '';
 
@@ -128,11 +124,10 @@ function getRatingStars(rating) {
 
     const stars = [];
     for (let i = 0; i < 3; i++) {
-        if (i < rating) {
-            stars.push('<span class="star star--filled">★</span>');
-        } else {
-            stars.push('<span class="star star--empty">☆</span>');
-        }
+        stars.push(i < rating
+            ? '<span class="star star--filled">★</span>'
+            : '<span class="star star--empty">☆</span>'
+        );
     }
 
     return `<div class="book-rating">${stars.join('')}</div>`;
@@ -143,18 +138,15 @@ function filterBooks() {
     const searchTokens = searchInput.value.toLowerCase().split(/\s+/).filter(t => t.length > 0);
 
     let filtered = books.filter(book => {
-        const matchesSearch = searchTokens.every(token => {
-            return (
-                book.titolo.toLowerCase().includes(token) ||
-                (book.volume && book.volume.toLowerCase().includes(token)) ||
-                (book.autori && book.autori.toLowerCase().includes(token)) ||
-                (book.editore && book.editore.toLowerCase().includes(token)) ||
-                (book.data && book.data.toLowerCase().includes(token)) ||
-                (book.tags && book.tags.some(tag => tag.toLowerCase().includes(token)))
-            );
-        });
+        const matchesSearch = searchTokens.every(token =>
+            book.titolo.toLowerCase().includes(token) ||
+            (book.volume && book.volume.toLowerCase().includes(token)) ||
+            (book.autori && book.autori.toLowerCase().includes(token)) ||
+            (book.editore && book.editore.toLowerCase().includes(token)) ||
+            (book.data && book.data.toLowerCase().includes(token)) ||
+            (book.tags && book.tags.some(tag => tag.toLowerCase().includes(token)))
+        );
 
-        // Other filters remain the same
         const matchesTag = !activeTag || book.tags.includes(activeTag);
         const matchesRating = !activeRating || book.rating === activeRating;
 
@@ -167,19 +159,17 @@ function filterBooks() {
 // Event listeners
 searchInput.addEventListener('input', filterBooks);
 
-// Tag filter buttons
 tagsContainer.addEventListener('click', (e) => {
-    const tagFilters = document.querySelectorAll('.tag-filter');
+    const tagFilterButtons = document.querySelectorAll('.tag-filter');
     const button = e.target.closest('.tag-filter');
-    if (!button) return; // Ignore clicks that aren't on a button
+    if (!button) return;
 
     const tag = button.dataset.tag;
-
     if (activeTag === tag) {
         activeTag = null;
         button.classList.remove('active');
     } else {
-        tagFilters.forEach(b => b.classList.remove('active'));
+        tagFilterButtons.forEach(b => b.classList.remove('active'));
         activeTag = tag;
         button.classList.add('active');
     }
@@ -188,7 +178,6 @@ tagsContainer.addEventListener('click', (e) => {
     filterBooks();
 });
 
-// Rating filter buttons
 ratingFilters.forEach(button => {
     button.addEventListener('click', () => {
         const rating = parseInt(button.dataset.rating);

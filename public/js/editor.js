@@ -113,7 +113,7 @@ const editor = (() => {
   function _buildFab() {
     const fab = document.createElement('button');
     fab.className = 'fab-new-book';
-    fab.setAttribute('aria-label', 'Nuovo libro');
+    fab.setAttribute('aria-label', 'Nuovo testo');
     fab.textContent = '+';
     fab.addEventListener('click', openNew);
     document.body.appendChild(fab);
@@ -127,13 +127,13 @@ const editor = (() => {
 
     // Header text
     if (mode === 'create') {
-      panelTitle.textContent = 'Nuovo libro';
+      panelTitle.textContent = 'Nuovo testo';
       panelSubtitle.textContent = 'Aggiungi un nuovo testo al catalogo';
     } else if (mode === 'edit') {
-      panelTitle.textContent = 'Modifica libro';
+      panelTitle.textContent = 'Modifica testo';
       panelSubtitle.textContent = book.titolo;
     } else {
-      panelTitle.textContent = 'Duplica libro';
+      panelTitle.textContent = 'Duplica testo';
       panelSubtitle.textContent = `Copia di: ${book.titolo}`;
     }
 
@@ -196,12 +196,12 @@ const editor = (() => {
     form.appendChild(field('Volume / Sottotitolo', false, volumeInput));
 
     // ── Autori ───────────────────────────────────────────────────────────
-    const autoriInput = input('autori', book?.autori, 'text', 'Cognome, Nome; Cognome, Nome');
+    const autoriInput = input('autori', book?.autori, 'text', 'Nome Cognome, Nome Cognome');
     form.appendChild(field('Autori', false, autoriInput));
 
     // ── Editore + Anno (row) ──────────────────────────────────────────────
     const editoreInput = input('editore', book?.editore, 'text', 'Casa editrice');
-    const dataInput    = input('data', book?.data, 'text', 'AAAA');
+    const dataInput = input('data', book?.data, 'text', 'AAAA');
     dataInput.maxLength = 4;
     dataInput.style.width = '100%';
 
@@ -327,14 +327,14 @@ const editor = (() => {
 
     const bookData = {
       titolo,
-      volume:   getValue('volume')  || undefined,
-      autori:   getValue('autori')  || undefined,
-      editore:  getValue('editore') || undefined,
-      data:     getValue('data')    || undefined,
-      copie:    parseInt(form.querySelector('[name="copie"]')?.value ?? '1', 10) || 1,
-      rating:   starPicker?._getRating() || undefined,
-      tags:     tagsPicker?._getTags() ?? [],
-      note:     getValue('note')    || undefined,
+      volume: getValue('volume') || undefined,
+      autori: getValue('autori') || undefined,
+      editore: getValue('editore') || undefined,
+      data: getValue('data') || undefined,
+      copie: parseInt(form.querySelector('[name="copie"]')?.value ?? '1', 10) || 1,
+      rating: starPicker?._getRating() || undefined,
+      tags: tagsPicker?._getTags() ?? [],
+      note: getValue('note') || undefined,
     };
 
     saveBtn.disabled = true;
@@ -373,7 +373,7 @@ const editor = (() => {
         window._books.sort(_advancedSort(['titolo', 'volume']));
 
         notify.success(
-          panelMode === 'duplicate' ? 'Libro duplicato.' : 'Libro aggiunto.',
+          panelMode === 'duplicate' ? 'Testo duplicato.' : 'Testo aggiunto.',
           { detail: saved.titolo }
         );
       }
@@ -395,49 +395,42 @@ const editor = (() => {
     const book = window._books.find(b => b.id === bookId);
     if (!book) return;
 
-    // Optimistic: remove from local array immediately
-    const idx = window._books.findIndex(b => b.id === bookId);
-    window._books.splice(idx, 1);
-    window._filterBooks();
-
-    let undone = false;
-
     const toastId = notify.warn(
-      `"${_truncate(book.titolo, 40)}" rimosso.`,
+      `"${_truncate(book.titolo, 40)}" sta per essere rimosso.`,
       {
-        duration: 7000,
-        detail: 'Il libro sarà eliminato definitivamente tra pochi secondi.',
+        duration: 0,
+        detail: 'Conferma l\'eliminazione definitiva del testo.',
         actions: [
           {
             label: 'Annulla',
             onClick: () => {
-              undone = true;
-              // Restore locally
-              window._books.splice(idx, 0, book);
-              window._books.sort(_advancedSort(['titolo', 'volume']));
-              window._filterBooks();
               notify.info('Eliminazione annullata.', { detail: book.titolo });
+            },
+          },
+          {
+            label: 'Conferma',
+            onClick: async () => {
+              // remove from local array immediately
+              const idx = window._books.findIndex(b => b.id === bookId);
+              window._books.splice(idx, 1);
+              window._filterBooks();
+              // DELETE
+              try {
+                const res = await fetch(`/api/books/${bookId}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error(await res.text());
+                notify.success('Testo eliminato definitivamente.');
+              } catch (err) {
+                // Deletion failed — restore the book
+                window._books.splice(idx, 0, book);
+                window._books.sort(_advancedSort(['titolo', 'volume']));
+                window._filterBooks();
+                notify.error('Errore durante l\'eliminazione.', { detail: err.message, duration: 0 });
+              }
             },
           },
         ],
       }
     );
-
-    // After toast auto-dismisses (7s + a small buffer), fire the real DELETE
-    setTimeout(async () => {
-      if (undone) return;
-      try {
-        const res = await fetch(`/api/books/${bookId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error(await res.text());
-        notify.success('Libro eliminato definitivamente.');
-      } catch (err) {
-        // Deletion failed — restore the book
-        window._books.splice(idx, 0, book);
-        window._books.sort(_advancedSort(['titolo', 'volume']));
-        window._filterBooks();
-        notify.error('Errore durante l\'eliminazione.', { detail: err.message, duration: 0 });
-      }
-    }, 7500);
   }
 
   // ── Public open helpers ───────────────────────────────────────────────────
@@ -472,8 +465,8 @@ const editor = (() => {
       overlay.setAttribute('aria-hidden', 'true');
 
       const editBtn = _overlayBtn('✎', 'Modifica', '', () => openEdit(bookId));
-      const dupBtn  = _overlayBtn('⧉', 'Duplica',  'overlay-btn--duplicate', () => openDuplicate(bookId));
-      const delBtn  = _overlayBtn('✕', 'Elimina',  'overlay-btn--danger',    () => deleteBook(bookId));
+      const dupBtn = _overlayBtn('⧉', 'Duplica', 'overlay-btn--duplicate', () => openDuplicate(bookId));
+      const delBtn = _overlayBtn('✕', 'Elimina', 'overlay-btn--danger', () => deleteBook(bookId));
 
       overlay.appendChild(editBtn);
       overlay.appendChild(dupBtn);

@@ -1,0 +1,165 @@
+/* ============================================
+   SYNC WIDGET — sync.css
+   Header status indicator + push button
+   ============================================ */
+
+/* ── Outer wrapper ────────────────────────── */
+
+.sync-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Crimson Pro', serif;
+}
+
+/* ── Indicator (dot + label) ──────────────── */
+
+.sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--color-border);
+    transition: background 0.3s ease;
+}
+
+/* State variants */
+
+.sync-indicator--loading .sync-dot {
+    background: var(--color-border);
+    animation: sync-pulse 1.4s ease-in-out infinite;
+}
+
+.sync-indicator--clean .sync-dot {
+    background: #5a8a5a;
+}
+
+.sync-indicator--clean .sync-label {
+    color: #5a8a5a;
+}
+
+.sync-indicator--dirty .sync-dot {
+    background: var(--color-primary-light);
+}
+
+.sync-indicator--dirty .sync-label {
+    color: var(--color-primary-light);
+    font-weight: 600;
+}
+
+.sync-indicator--pushing .sync-dot {
+    background: #4a7a9b;
+    animation: sync-pulse 0.8s ease-in-out infinite;
+}
+
+.sync-indicator--pushing .sync-label {
+    color: #4a7a9b;
+}
+
+.sync-indicator--error .sync-dot {
+    background: #a94442;
+}
+
+.sync-indicator--error .sync-label {
+    color: #a94442;
+}
+
+/* ── Push button ──────────────────────────── */
+
+.sync-push-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 13px;
+    background: transparent;
+    border: 1.5px solid var(--color-primary);
+    color: var(--color-primary);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, border-color 0.18s, opacity 0.18s;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.sync-push-btn:hover:not(:disabled) {
+    background: var(--color-primary);
+    color: #faf8f3;
+}
+
+.sync-push-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ── Spinner ──────────────────────────────── */
+
+.sync-spinner {
+    width: 13px;
+    height: 13px;
+    display: none;
+    flex-shrink: 0;
+}
+
+.sync-push-btn--loading .sync-spinner {
+    display: block;
+    animation: sync-spin 0.8s linear infinite;
+}
+
+.sync-push-btn--loading .sync-push-label {
+    opacity: 0.7;
+}
+
+/* ── Keyframes ────────────────────────────── */
+
+@keyframes sync-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes sync-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Reduced motion ───────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .sync-indicator--loading .sync-dot,
+    .sync-indicator--pushing .sync-dot,
+    .sync-push-btn--loading .sync-spinner {
+        animation: none;
+    }
+}
+
+/* ── Mobile: hide label, keep dot + button ── */
+
+@media (max-width: 600px) {
+    .sync-label {
+        display: none;
+    }
+
+    .sync-push-btn {
+        padding: 5px 10px;
+    }
+}

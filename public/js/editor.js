@@ -9,14 +9,15 @@
  *
  * Depends on:
  *  - notify.js  (must be loaded first)
- *  - The global `books` and `config` arrays from script.js
- *  - `renderBooks()` and `filterBooks()` from script.js (called after mutations)
+ *  - store.js   (must be loaded first)
+ *  - script.js  calls store.setFilterFn(filterBooks) so store.filterBooks() works
  *
- * Public API (attached to window):
- *  editor.openNew()
- *  editor.openEdit(bookId)
- *  editor.openDuplicate(bookId)
- *  editor.deleteBook(bookId)
+ * Public API (window.editor):
+ *   editor.openNew()
+ *   editor.openEdit(bookId)
+ *   editor.openDuplicate(bookId)
+ *   editor.deleteBook(bookId)
+ *   editor.attachOverlays()
  */
 
 const editor = (() => {
@@ -25,7 +26,6 @@ const editor = (() => {
 
   let panelMode = null;      // 'create' | 'edit' | 'duplicate'
   let editingId = null;      // book id being edited (null for new)
-  let pendingDelete = null;  // { book, undoToastId } — for undo support
 
   // ── DOM references (created once in init) ────────────────────────────────
 
@@ -125,7 +125,6 @@ const editor = (() => {
     panelMode = mode;
     editingId = (mode === 'edit') ? book.id : null;
 
-    // Header text
     if (mode === 'create') {
       panelTitle.textContent = 'Nuovo testo';
       panelSubtitle.textContent = 'Aggiungi un nuovo testo al catalogo';
@@ -137,15 +136,12 @@ const editor = (() => {
       panelSubtitle.textContent = `Copia di: ${book.titolo}`;
     }
 
-    // Build form
     panelBody.innerHTML = '';
     panelBody.appendChild(_buildForm(book));
 
-    // Animate open
     backdrop.classList.add('panel-backdrop--visible');
     panel.classList.add('editor-panel--open');
 
-    // Focus first input
     requestAnimationFrame(() => {
       const first = panelBody.querySelector('input, textarea');
       first?.focus();
@@ -165,7 +161,6 @@ const editor = (() => {
     const form = document.createElement('div');
     form.id = 'book-form';
 
-    // Helper: create a labelled field wrapper
     function field(labelText, required, ...inputs) {
       const wrap = document.createElement('div');
       wrap.className = 'form-field';
@@ -187,19 +182,19 @@ const editor = (() => {
       return el;
     }
 
-    // ── Titolo (required) ────────────────────────────────────────────────
+    // Titolo (required)
     const titoloInput = input('titolo', book?.titolo, 'text', 'Titolo della pubblicazione');
     form.appendChild(field('Titolo', true, titoloInput));
 
-    // ── Volume ───────────────────────────────────────────────────────────
+    // Volume
     const volumeInput = input('volume', book?.volume, 'text', 'es. Vol. 1, Parte II…');
     form.appendChild(field('Volume / Sottotitolo', false, volumeInput));
 
-    // ── Autori ───────────────────────────────────────────────────────────
+    // Autori
     const autoriInput = input('autori', book?.autori, 'text', 'Nome Cognome, Nome Cognome');
     form.appendChild(field('Autori', false, autoriInput));
 
-    // ── Editore + Anno (row) ──────────────────────────────────────────────
+    // Editore + Anno row
     const editoreInput = input('editore', book?.editore, 'text', 'Casa editrice');
     const dataInput = input('data', book?.data, 'text', 'AAAA');
     dataInput.maxLength = 4;
@@ -211,12 +206,12 @@ const editor = (() => {
     row.appendChild(field('Anno', false, dataInput));
     form.appendChild(row);
 
-    // ── Copie ────────────────────────────────────────────────────────────
+    // Copie
     const copieInput = input('copie', book?.copie ?? 1, 'number', '1');
     copieInput.min = 1;
     form.appendChild(field('Copie', false, copieInput));
 
-    // ── Rating (star picker) ─────────────────────────────────────────────
+    // Star rating picker
     let currentRating = book?.rating ?? 0;
 
     const starPicker = document.createElement('div');
@@ -231,7 +226,7 @@ const editor = (() => {
       btn.textContent = '★';
       btn.setAttribute('aria-label', `${v} ${v === 1 ? 'stella' : 'stelle'}`);
       btn.addEventListener('click', () => {
-        currentRating = (currentRating === v) ? 0 : v; // toggle off if same
+        currentRating = (currentRating === v) ? 0 : v;
         _updateStars(stars, currentRating);
       });
       return btn;
@@ -242,22 +237,17 @@ const editor = (() => {
     clearStar.className = 'star-picker__clear';
     clearStar.textContent = 'nessuna';
     clearStar.setAttribute('aria-label', 'Rimuovi valutazione');
-    clearStar.addEventListener('click', () => {
-      currentRating = 0;
-      _updateStars(stars, 0);
-    });
+    clearStar.addEventListener('click', () => { currentRating = 0; _updateStars(stars, 0); });
 
     stars.forEach(s => starPicker.appendChild(s));
     starPicker.appendChild(clearStar);
-
-    // Store getter on the element for _handleSave to read
     starPicker._getRating = () => currentRating;
 
     form.appendChild(field('Valutazione', false, starPicker));
 
-    // ── Tags multi-select ────────────────────────────────────────────────
+    // Tags multi-select
     const selectedTags = new Set(
-      (book?.tags ?? []).filter(t => !t.includes('copie'))  // exclude auto-added copies tag
+      (book?.tags ?? []).filter(t => !t.includes('copie'))
     );
 
     const tagsPicker = document.createElement('div');
@@ -265,7 +255,7 @@ const editor = (() => {
     tagsPicker.setAttribute('role', 'group');
     tagsPicker.setAttribute('aria-label', 'Categorie');
 
-    const availableTags = (window._config?.tags ?? []).map(t => t.label);
+    const availableTags = (store.config?.tags ?? []).map(t => t.label);
 
     availableTags.forEach(label => {
       const btn = document.createElement('button');
@@ -288,7 +278,7 @@ const editor = (() => {
 
     form.appendChild(field('Categorie', false, tagsPicker));
 
-    // ── Note ─────────────────────────────────────────────────────────────
+    // Note
     const noteInput = document.createElement('textarea');
     noteInput.className = 'form-textarea';
     noteInput.name = 'note';
@@ -300,9 +290,7 @@ const editor = (() => {
   }
 
   function _updateStars(stars, rating) {
-    stars.forEach((s, i) => {
-      s.classList.toggle('star-picker__star--active', i < rating);
-    });
+    stars.forEach((s, i) => s.classList.toggle('star-picker__star--active', i < rating));
   }
 
   // ── Save handler ──────────────────────────────────────────────────────────
@@ -311,7 +299,6 @@ const editor = (() => {
     const form = document.getElementById('book-form');
     if (!form) return;
 
-    // Collect values
     const getValue = name => form.querySelector(`[name="${name}"]`)?.value.trim() ?? '';
     const starPicker = form.querySelector('.star-picker');
     const tagsPicker = form.querySelector('.tags-picker');
@@ -327,14 +314,14 @@ const editor = (() => {
 
     const bookData = {
       titolo,
-      volume: getValue('volume') || undefined,
-      autori: getValue('autori') || undefined,
+      volume:  getValue('volume')  || undefined,
+      autori:  getValue('autori')  || undefined,
       editore: getValue('editore') || undefined,
-      data: getValue('data') || undefined,
-      copie: parseInt(form.querySelector('[name="copie"]')?.value ?? '1', 10) || 1,
-      rating: starPicker?._getRating() || undefined,
-      tags: tagsPicker?._getTags() ?? [],
-      note: getValue('note') || undefined,
+      data:    getValue('data')    || undefined,
+      copie:   parseInt(form.querySelector('[name="copie"]')?.value ?? '1', 10) || 1,
+      rating:  starPicker?._getRating() || undefined,
+      tags:    tagsPicker?._getTags() ?? [],
+      note:    getValue('note') || undefined,
     };
 
     saveBtn.disabled = true;
@@ -352,14 +339,10 @@ const editor = (() => {
         if (!res.ok) throw new Error(await res.text());
         saved = await res.json();
 
-        // Update in-place in global array
-        const idx = window._books.findIndex(b => b.id === editingId);
-        if (idx !== -1) window._books[idx] = saved;
-
+        store.upsertBook(saved);
         notify.success('Modifiche salvate.', { detail: saved.titolo });
 
       } else {
-        // create or duplicate — POST
         const res = await fetch('/api/books', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -368,10 +351,7 @@ const editor = (() => {
         if (!res.ok) throw new Error(await res.text());
         saved = await res.json();
 
-        window._books.push(saved);
-        // Re-sort
-        window._books.sort(_advancedSort(['titolo', 'volume']));
-
+        store.upsertBook(saved);
         notify.success(
           panelMode === 'duplicate' ? 'Testo duplicato.' : 'Testo aggiunto.',
           { detail: saved.titolo }
@@ -379,7 +359,7 @@ const editor = (() => {
       }
 
       closePanel();
-      window._filterBooks();
+      store.filterBooks();
 
     } catch (err) {
       notify.error('Errore durante il salvataggio.', { detail: err.message, duration: 0 });
@@ -392,10 +372,12 @@ const editor = (() => {
   // ── Delete with undo ──────────────────────────────────────────────────────
 
   async function deleteBook(bookId) {
-    const book = window._books.find(b => b.id === bookId);
+    const book = store.books.find(b => b.id === bookId);
     if (!book) return;
 
-    const toastId = notify.warn(
+    const savedIndex = store.indexOfBook(bookId);
+
+    notify.warn(
       `"${_truncate(book.titolo, 40)}" sta per essere rimosso.`,
       {
         duration: 0,
@@ -410,20 +392,15 @@ const editor = (() => {
           {
             label: 'Conferma',
             onClick: async () => {
-              // remove from local array immediately
-              const idx = window._books.findIndex(b => b.id === bookId);
-              window._books.splice(idx, 1);
-              window._filterBooks();
-              // DELETE
+              store.removeBook(bookId);
+              store.filterBooks();
               try {
                 const res = await fetch(`/api/books/${bookId}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error(await res.text());
                 notify.success('Testo eliminato definitivamente.');
               } catch (err) {
-                // Deletion failed — restore the book
-                window._books.splice(idx, 0, book);
-                window._books.sort(_advancedSort(['titolo', 'volume']));
-                window._filterBooks();
+                store.restoreBook(book, savedIndex);
+                store.filterBooks();
                 notify.error('Errore durante l\'eliminazione.', { detail: err.message, duration: 0 });
               }
             },
@@ -440,33 +417,31 @@ const editor = (() => {
   }
 
   function openEdit(bookId) {
-    const book = window._books.find(b => b.id === bookId);
+    const book = store.books.find(b => b.id === bookId);
     if (!book) return;
     _openPanel('edit', book);
   }
 
   function openDuplicate(bookId) {
-    const book = window._books.find(b => b.id === bookId);
+    const book = store.books.find(b => b.id === bookId);
     if (!book) return;
     _openPanel('duplicate', book);
   }
 
   // ── Card overlay injection ────────────────────────────────────────────────
-  // Called by script.js after every renderBooks()
 
   function attachOverlays() {
     document.querySelectorAll('.book-card').forEach(card => {
-      if (card.querySelector('.book-card__overlay')) return; // already attached
+      if (card.querySelector('.book-card__overlay')) return;
 
       const bookId = parseInt(card.dataset.bookId, 10);
-
       const overlay = document.createElement('div');
       overlay.className = 'book-card__overlay';
       overlay.setAttribute('aria-hidden', 'true');
 
-      const editBtn = _overlayBtn('✎', 'Modifica', '', () => openEdit(bookId));
-      const dupBtn = _overlayBtn('⧉', 'Duplica', 'overlay-btn--duplicate', () => openDuplicate(bookId));
-      const delBtn = _overlayBtn('✕', 'Elimina', 'overlay-btn--danger', () => deleteBook(bookId));
+      const editBtn = _overlayBtn('✎', 'Modifica', '',                    () => openEdit(bookId));
+      const dupBtn  = _overlayBtn('⧉', 'Duplica',  'overlay-btn--duplicate', () => openDuplicate(bookId));
+      const delBtn  = _overlayBtn('✕', 'Elimina',  'overlay-btn--danger',    () => deleteBook(bookId));
 
       overlay.appendChild(editBtn);
       overlay.appendChild(dupBtn);
@@ -497,18 +472,6 @@ const editor = (() => {
 
   function _truncate(str, max) {
     return str.length > max ? str.slice(0, max - 1) + '…' : str;
-  }
-
-  function _advancedSort(props) {
-    return (a, b) => {
-      for (let prop of props) {
-        let desc = false;
-        if (prop.startsWith('-')) { desc = true; prop = prop.slice(1); }
-        const cmp = String(a[prop] ?? '').localeCompare(String(b[prop] ?? ''), undefined, { numeric: true, sensitivity: 'base' });
-        if (cmp !== 0) return desc ? -cmp : cmp;
-      }
-      return 0;
-    };
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────

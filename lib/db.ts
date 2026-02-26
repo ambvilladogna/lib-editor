@@ -7,6 +7,8 @@ if (!SITE_REPO_PATH) throw new Error("Missing env var: SITE_REPO_PATH");
 const DATA_DIR = join(SITE_REPO_PATH, "data");
 const BOOKS_PATH = join(DATA_DIR, "books.json");
 const CONFIG_PATH = join(DATA_DIR, "config.json");
+const BOOKS_REL_PATH = join("data", "books.json");
+const CONFIG_REL_PATH = join("data", "config.json");
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,9 +71,9 @@ export async function writeConfig(config: Config): Promise<void> {
 }
 
 export function booksPath(): string {
-  return BOOKS_PATH;
+  return BOOKS_REL_PATH;
 }
 
 export function configPath(): string {
-  return CONFIG_PATH;
+  return CONFIG_REL_PATH;
 }

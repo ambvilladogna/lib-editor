@@ -21,13 +21,15 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/notify.css">
     <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="css/sync.css">
 </head>
 
 <body>
     <header class="header">
         <div class="container header__container">
             <div class="header__logo">Biblioteca Micologica</div>
-            <div class="header__nav">Placeholder for sync status
+            <div class="header__nav">
+                <!-- sync.js mounts the sync widget here -->
             </div>
         </div>
     </header>
@@ -112,8 +114,17 @@
         </div>
     </footer>
 
+    <!-- Load order matters:
+         store.js   → shared state (no deps)
+         notify.js  → toasts (no deps)
+         sync.js    → needs store + notify
+         editor.js  → needs store + notify
+         script.js  → needs all of the above; calls editor.init() + sync.init()
+    -->
     <script src="shared/js/common.js"></script>
+    <script src="js/store.js"></script>
     <script src="js/notify.js"></script>
+    <script src="js/sync.js"></script>
     <script src="js/editor.js"></script>
     <script src="js/script.js"></script>
 </body>

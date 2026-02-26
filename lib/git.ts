@@ -175,19 +175,16 @@ export async function pull(): Promise<PullResult> {
 export async function push(commitMessage: string): Promise<PushResult> {
   const dataFiles = [booksPath(), configPath()];
 
-  // Step 1 — stage data files
+  // Stage data files
   await git(["add", ...dataFiles]);
 
-  // Step 2 — commit (nothing to do if tree is clean)
+  // Commit (skip gracefully if nothing to commit)
   const commitResult = await gitSafe(["commit", "-m", commitMessage]);
   if (!commitResult.ok) {
-    // "nothing to commit" is not an error we want to hard-fail on
     if (
-      commitResult.stdout.includes("nothing to commit") ||
-      commitResult.stderr.includes("nothing to commit")
+      !commitResult.stdout.includes("nothing to commit") &&
+      !commitResult.stderr.includes("nothing to commit")
     ) {
-      // fall through — maybe the user just wants to re-push an existing commit
-    } else {
       return {
         success: false,
         error: `git commit failed: ${commitResult.stderr || commitResult.stdout}`,
@@ -195,16 +192,8 @@ export async function push(commitMessage: string): Promise<PushResult> {
     }
   }
 
-  // Step 3 — pull --ff-only to incorporate any remote changes since last fetch
-  const pullResult = await pull();
-  if (!pullResult.success) {
-    return {
-      success: false,
-      error: `Pre-push pull failed — resolve conflicts externally and try again. (${pullResult.error})`,
-    };
-  }
-
-  // Step 4 — push with --force-with-lease
+  // Push directly — startup pull already ensures we're current,
+  // and --force-with-lease will reject if the remote moved unexpectedly
   const pushResult = await gitSafe(["push", "--force-with-lease"]);
   if (!pushResult.ok) {
     return {
@@ -213,7 +202,6 @@ export async function push(commitMessage: string): Promise<PushResult> {
     };
   }
 
-  // Step 5 — return the short SHA of HEAD for confirmation
   const sha = await git(["rev-parse", "--short", "HEAD"]);
   return { success: true, sha };
 }

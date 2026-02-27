@@ -4,6 +4,7 @@ import { handleConfig } from "./routes/config";
 import { handleSync } from "./routes/sync";
 import { handleStatus, setStartupStatus } from "./routes/status";
 import { pull } from "./lib/git";
+import { handleQuit } from "./routes/quit";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
@@ -40,6 +41,10 @@ Bun.serve({
     // ── API routes ────────────────────────────────────────────────────────────
     if (url.pathname === "/api/status") {
       return handleStatus(req);
+    }
+
+    if (url.pathname === "/api/quit") {
+      return handleQuit(req);
     }
 
     if (url.pathname.startsWith("/api/books")) {

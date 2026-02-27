@@ -84,7 +84,7 @@ const sync = (() => {
     _spinner = _buildSpinner();
     const btnLabel = document.createElement('span');
     btnLabel.className = 'sync-push-label';
-    btnLabel.textContent = 'Push';
+    btnLabel.textContent = 'Pubblica';
 
     _pushBtn.appendChild(_spinner);
     _pushBtn.appendChild(btnLabel);
@@ -144,7 +144,7 @@ const sync = (() => {
 
     if (!hasPending) {
       _indicator.className = 'sync-indicator sync-indicator--clean';
-      label.textContent = 'In sync';
+      label.textContent = 'Aggiornato';
       _pushBtn.style.display = 'none';
     } else {
       _indicator.className = 'sync-indicator sync-indicator--dirty';
@@ -189,7 +189,7 @@ const sync = (() => {
         });
         await refresh();
       } else {
-        notify.error('Push non riuscito.', {
+        notify.error('Pubblicazione non riuscita.', {
           detail: result.error,
           duration: 0,
         });

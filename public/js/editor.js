@@ -369,7 +369,7 @@ const editor = (() => {
     }
   }
 
-  // ── Delete with undo ──────────────────────────────────────────────────────
+  // ── Delete with confirmation ──────────────────────────────────────────────
 
   async function deleteBook(bookId) {
     const book = store.books.find(b => b.id === bookId);

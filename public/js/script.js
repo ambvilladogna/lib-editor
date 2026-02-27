@@ -1,15 +1,15 @@
 // Filter state — local to script.js
-let activeTag    = null;
+let activeTag = null;
 let activeRating = null;
 
 // DOM elements
-const booksGrid    = document.getElementById('booksGrid');
-const searchInput  = document.getElementById('searchInput');
+const booksGrid = document.getElementById('booksGrid');
+const searchInput = document.getElementById('searchInput');
 const tagsContainer = document.getElementById('filter-tags');
 const ratingFilters = document.querySelectorAll('.rating-filter');
 const visibleCount = document.getElementById('visibleCount');
-const totalCount   = document.getElementById('totalCount');
-const noResults    = document.getElementById('noResults');
+const totalCount = document.getElementById('totalCount');
+const noResults = document.getElementById('noResults');
 
 // ── Data loading ────────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ function renderBooks(filteredBooks) {
             const tagsHtml = displayTags.length > 0
                 ? `<div class="book-tags">${displayTags.map(tag =>
                     `<span class="${tag.includes('copie') ? 'copies-tag' : 'tag'}">${tag}</span>`
-                  ).join('')}</div>`
+                ).join('')}</div>`
                 : '';
 
             card.innerHTML = `
@@ -91,9 +91,9 @@ function renderBooks(filteredBooks) {
                 </div>
                 ${volumeDisplay}
                 <div class="book-meta">
-                    ${book.autori  ? `<div class="meta-row"><span class="meta-label">Autori:</span><span class="meta-value">${book.autori}</span></div>` : ''}
+                    ${book.autori ? `<div class="meta-row"><span class="meta-label">Autori:</span><span class="meta-value">${book.autori}</span></div>` : ''}
                     ${book.editore ? `<div class="meta-row"><span class="meta-label">Editore:</span><span class="meta-value">${book.editore}</span></div>` : ''}
-                    ${book.data    ? `<div class="meta-row"><span class="meta-label">Anno:</span><span class="meta-value">${book.data}</span></div>` : ''}
+                    ${book.data ? `<div class="meta-row"><span class="meta-label">Anno:</span><span class="meta-value">${book.data}</span></div>` : ''}
                 </div>
                 ${tagsHtml}
             `;
@@ -131,14 +131,14 @@ function filterBooks() {
     const filtered = store.books.filter(book => {
         const matchesSearch = searchTokens.every(token =>
             book.titolo.toLowerCase().includes(token) ||
-            (book.volume  && book.volume.toLowerCase().includes(token))  ||
-            (book.autori  && book.autori.toLowerCase().includes(token))  ||
+            (book.volume && book.volume.toLowerCase().includes(token)) ||
+            (book.autori && book.autori.toLowerCase().includes(token)) ||
             (book.editore && book.editore.toLowerCase().includes(token)) ||
-            (book.data    && book.data.toLowerCase().includes(token))    ||
-            (book.tags    && book.tags.some(tag => tag.toLowerCase().includes(token)))
+            (book.data && book.data.toLowerCase().includes(token)) ||
+            (book.tags && book.tags.some(tag => tag.toLowerCase().includes(token)))
         );
 
-        const matchesTag    = !activeTag    || book.tags.includes(activeTag);
+        const matchesTag = !activeTag || book.tags.includes(activeTag);
         const matchesRating = !activeRating || book.rating === activeRating;
 
         return matchesSearch && matchesTag && matchesRating;
@@ -206,6 +206,51 @@ async function checkStartupStatus() {
             });
         }
     } catch { /* silent */ }
+}
+
+// ── Startup status ───────────────────────────────────────────────────────────
+
+async function quit() {
+    notify.warn(
+        `Vuoi davvero uscire dall'applicazione?`,
+        {
+            duration: 0,
+            detail: 'Conferma l\'uscita dall\'applicazione.',
+            actions: [
+                {
+                    label: 'Annulla',
+                    onClick: () => {
+                        notify.info('Uscita annullata.');
+                    },
+                },
+                {
+                    label: 'Conferma',
+                    onClick: async () => {
+                        try {
+                            const res = await fetch('/api/quit', { method: 'POST' });
+                            if (res.ok)
+                                notify.info('Questo tab è scollegato dall\'applicazione.', {
+                                    duration: 0,
+                                    detail: 'Chiudi il tab.'
+                                });
+                            else
+                                notify.warn('Ops...', {
+                                    duration: 0,
+                                    detail: status.error ?? 'Qualcosa è andato storto.',
+                                });
+
+                        } catch {
+                            notify.warn('Ops...', {
+                                duration: 0,
+                                detail: status.error ?? 'Qualcosa è andato storto.',
+                            });
+                        }
+                    },
+                },
+            ],
+        }
+    );
+
 }
 
 // ── Startup ──────────────────────────────────────────────────────────────────

@@ -32,7 +32,8 @@ async function loadData() {
         initializeFilters();
         filterBooks();
         editor.init();
-        sync.init();
+        sync.init();   // appends sync widget to .header__nav
+        quit.init();   // appends quit button to .header__nav (after sync widget)
 
     } catch (error) {
         console.error('Error loading data:', error);
@@ -197,60 +198,15 @@ async function checkStartupStatus() {
     try {
         const res = await fetch('/api/status');
         if (!res.ok) return;
-        const status = await res.json();
-        if (!status.checked) return;
-        if (!status.success) {
+        const data = await res.json();
+        if (!data.checked) return;
+        if (!data.success) {
             notify.warn('Sincronizzazione iniziale non riuscita.', {
                 duration: 0,
-                detail: status.error ?? 'I dati locali potrebbero non essere aggiornati. Riavvia l\'app dopo aver risolto il conflitto.',
+                detail: data.error ?? 'I dati locali potrebbero non essere aggiornati. Riavvia l\'app dopo aver risolto il conflitto.',
             });
         }
     } catch { /* silent */ }
-}
-
-// ── Startup status ───────────────────────────────────────────────────────────
-
-async function quit() {
-    notify.warn(
-        `Vuoi davvero uscire dall'applicazione?`,
-        {
-            duration: 0,
-            detail: 'Conferma l\'uscita dall\'applicazione.',
-            actions: [
-                {
-                    label: 'Annulla',
-                    onClick: () => {
-                        notify.info('Uscita annullata.');
-                    },
-                },
-                {
-                    label: 'Conferma',
-                    onClick: async () => {
-                        try {
-                            const res = await fetch('/api/quit', { method: 'POST' });
-                            if (res.ok)
-                                notify.info('Questo tab è scollegato dall\'applicazione.', {
-                                    duration: 0,
-                                    detail: 'Chiudi il tab.'
-                                });
-                            else
-                                notify.warn('Ops...', {
-                                    duration: 0,
-                                    detail: status.error ?? 'Qualcosa è andato storto.',
-                                });
-
-                        } catch {
-                            notify.warn('Ops...', {
-                                duration: 0,
-                                detail: status.error ?? 'Qualcosa è andato storto.',
-                            });
-                        }
-                    },
-                },
-            ],
-        }
-    );
-
 }
 
 // ── Startup ──────────────────────────────────────────────────────────────────

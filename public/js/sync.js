@@ -2,10 +2,10 @@
  * sync.js — Sync status indicator & push UI
  *
  * Renders a small status widget inside .header__nav that shows:
- *   · "In sync"  when clean and ahead === 0
- *   · "N unsaved changes"  when dirty (uncommitted edits)
- *   · "N ahead"  when commits exist but not yet pushed
- *   · A "Push" button whenever there is something to push
+ *   · "Aggiornato"  when clean and ahead === 0
+ *   · "modifiche non salvate"  when dirty (uncommitted edits)
+ *   · "N da inviare"  when commits exist but not yet pushed
+ *   · A "Pubblica" button whenever there is something to push
  *
  * Uses notify.js for feedback and polls /api/sync/status periodically.
  *
@@ -18,22 +18,22 @@ const sync = (() => {
 
   // ── Config ─────────────────────────────────────────────────────────────────
 
-  const POLL_INTERVAL_MS   = 30_000;   // background poll every 30 s
+  const POLL_INTERVAL_MS = 30_000;   // background poll every 30 s
   const REFRESH_AFTER_EDIT = 2_000;    // re-check 2 s after a book mutation
 
   // ── State ──────────────────────────────────────────────────────────────────
 
-  let _status       = null;    // last known SyncStatus from the API
-  let _pushing      = false;
-  let _pollTimer    = null;
+  let _status = null;
+  let _pushing = false;
+  let _pollTimer = null;
   let _debounceTimer = null;
 
   // ── DOM refs ───────────────────────────────────────────────────────────────
 
-  let _widget       = null;   // outer wrapper injected into .header__nav
-  let _indicator    = null;   // <span> showing the status text / dot
-  let _pushBtn      = null;   // <button> "Push"
-  let _spinner      = null;   // SVG spinner shown while pushing
+  let _widget = null;
+  let _indicator = null;
+  let _pushBtn = null;
+  let _spinner = null;
 
   // ── Bootstrap ──────────────────────────────────────────────────────────────
 
@@ -55,8 +55,8 @@ const sync = (() => {
     const nav = document.querySelector('.header__nav');
     if (!nav) return;
 
-    // Remove placeholder text
-    nav.textContent = '';
+    // IMPORTANT: do NOT clear nav — quit.js appends its button after us.
+    // Just append the sync widget as a child.
 
     _widget = document.createElement('div');
     _widget.className = 'sync-widget';
@@ -149,8 +149,7 @@ const sync = (() => {
     } else {
       _indicator.className = 'sync-indicator sync-indicator--dirty';
       const parts = [];
-      if (dirty)   parts.push(`modifiche non salvate`);
-      // if (dirty)   parts.push(`${dirty ? '●' : ''} modifiche non salvate`);
+      if (dirty) parts.push('modifiche non salvate');
       if (ahead > 0) parts.push(`${ahead} da inviare`);
       label.textContent = parts.join(' · ');
       _pushBtn.style.display = '';
@@ -196,7 +195,7 @@ const sync = (() => {
         _render();
       }
     } catch (err) {
-      notify.error('Errore di rete durante il push.', {
+      notify.error('Errore di rete durante la pubblicazione.', {
         detail: err.message,
         duration: 0,
       });

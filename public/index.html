@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="css/notify.css">
     <link rel="stylesheet" href="css/editor.css">
     <link rel="stylesheet" href="css/sync.css">
+    <link rel="stylesheet" href="css/quit.css">
 </head>
 
 <body>
@@ -29,7 +30,7 @@
         <div class="container header__container">
             <div class="header__logo">Biblioteca Micologica</div>
             <div class="header__nav">
-                <!-- sync.js mounts the sync widget here -->
+                <!-- sync.js mounts the sync widget here, then quit.js appends the quit button -->
             </div>
         </div>
     </header>
@@ -114,17 +115,19 @@
         </div>
     </footer>
 
-    <!-- Load order matters:
+    <!-- Load order:
          store.js   → shared state (no deps)
          notify.js  → toasts (no deps)
-         sync.js    → needs store + notify
+         sync.js    → needs store + notify; appends sync widget to .header__nav
+         quit.js    → needs notify; appends quit button to .header__nav (after sync)
          editor.js  → needs store + notify
-         script.js  → needs all of the above; calls editor.init() + sync.init()
+         script.js  → needs all of the above; calls .init() on each module
     -->
     <script src="shared/js/common.js"></script>
     <script src="js/store.js"></script>
     <script src="js/notify.js"></script>
     <script src="js/sync.js"></script>
+    <script src="js/quit.js"></script>
     <script src="js/editor.js"></script>
     <script src="js/script.js"></script>
 </body>

@@ -290,10 +290,7 @@ const tags = (() => {
             // If the label changed we need to refresh books too
             if (tag.label !== newLabel && affectedBooks > 0) {
                 const booksRes = await fetch('/api/books');
-                if (booksRes.ok) {
-                    store.setBooks(await booksRes.json());
-                    store.filterBooks();
-                }
+                if (booksRes.ok) store.setBooks(await booksRes.json());
                 notify.success(`Categoria rinominata.`, {
                     detail: `${affectedBooks} ${affectedBooks === 1 ? 'testo aggiornato' : 'testi aggiornati'}.`,
                 });
@@ -347,10 +344,7 @@ const tags = (() => {
             // Refresh books if any were affected
             if (affectedBooks > 0) {
                 const booksRes = await fetch('/api/books');
-                if (booksRes.ok) {
-                    store.setBooks(await booksRes.json());
-                    store.filterBooks();
-                }
+                if (booksRes.ok) store.setBooks(await booksRes.json());
             }
 
             notify.success(`Categoria «${tag.label}» eliminata.`, {

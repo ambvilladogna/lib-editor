@@ -40,7 +40,7 @@ async function loadData() {
         // Re-render tag filter buttons whenever config changes (tag add/rename/delete)
         store.onChange(() => {
             _refreshTagFilters();
-            // store.filterBooks();
+            store.filterBooks();
         });
 
     } catch (error) {
@@ -74,7 +74,6 @@ function _refreshTagFilters() {
     // If the previously active tag no longer exists, clear it
     if (activeTag && !(store.config?.tags ?? []).some(t => t.label === activeTag)) {
         activeTag = null;
-        filterBooks();
     }
 }
 

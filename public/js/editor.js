@@ -11,7 +11,7 @@
  *  - notify.js  (must be loaded first)
  *  - store.js   (must be loaded first)
  *  - tags.js    (must be loaded first — used by the "+ nuovo tag" chip)
- *  - script.js  calls store.setFilterFn(filterBooks) so store.filterBooks() works
+ *  - script.js   (for getRatingStars and to trigger re-render after changes)
  *
  * Public API (window.editor):
  *   editor.openNew()
@@ -401,7 +401,6 @@ const editor = (() => {
       }
 
       closePanel();
-      store.filterBooks();
 
     } catch (err) {
       notify.error('Errore durante il salvataggio.', { detail: err.message, duration: 0 });
@@ -435,14 +434,12 @@ const editor = (() => {
             label: 'Conferma',
             onClick: async () => {
               store.removeBook(bookId);
-              store.filterBooks();
               try {
                 const res = await fetch(`/api/books/${bookId}`, { method: 'DELETE' });
                 if (!res.ok) throw new Error(await res.text());
                 notify.success('Testo eliminato definitivamente.');
               } catch (err) {
                 store.restoreBook(book, savedIndex);
-                store.filterBooks();
                 notify.error('Errore durante l\'eliminazione.', { detail: err.message, duration: 0 });
               }
             },

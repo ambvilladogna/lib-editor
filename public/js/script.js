@@ -40,6 +40,7 @@ async function loadData() {
         // Re-render tag filter buttons whenever config changes (tag add/rename/delete)
         store.onChange(() => {
             _refreshTagFilters();
+            // store.filterBooks();
         });
 
     } catch (error) {

@@ -23,9 +23,9 @@ const store = (() => {
 
   // ── Private state ──────────────────────────────────────────────────────────
 
-  let _books  = [];
+  let _books = [];
   let _config = { tags: [], ratings: [] };
-  let _filterBooks = () => {};           // injected by script.js after init
+  let _filterBooks = () => { };           // injected by script.js after init
   const _subscribers = new Set();
 
   // ── Notification ───────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ const store = (() => {
   function _sort(arr) {
     return arr.slice().sort((a, b) =>
       String(a.titolo ?? '').localeCompare(String(b.titolo ?? ''), undefined, { numeric: true, sensitivity: 'base' }) ||
-      String(a.volume  ?? '').localeCompare(String(b.volume  ?? ''), undefined, { numeric: true, sensitivity: 'base' })
+      String(a.volume ?? '').localeCompare(String(b.volume ?? ''), undefined, { numeric: true, sensitivity: 'base' })
     );
   }
 
@@ -49,7 +49,7 @@ const store = (() => {
 
     // ── Getters ────────────────────────────────────────────────────────────────
 
-    get books()  { return _books;  },
+    get books() { return _books; },
     get config() { return _config; },
 
     // ── Bulk setters (used by loadData in script.js) ───────────────────────────

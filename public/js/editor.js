@@ -356,14 +356,14 @@ const editor = (() => {
 
     const bookData = {
       titolo,
-      volume:  getValue('volume')  || undefined,
-      autori:  getValue('autori')  || undefined,
+      volume: getValue('volume') || undefined,
+      autori: getValue('autori') || undefined,
       editore: getValue('editore') || undefined,
-      data:    getValue('data')    || undefined,
-      copie:   parseInt(form.querySelector('[name="copie"]')?.value ?? '1', 10) || 1,
-      rating:  starPicker?._getRating() || undefined,
-      tags:    tagsPicker?._getTags() ?? [],
-      note:    getValue('note') || undefined,
+      data: getValue('data') || undefined,
+      copie: parseInt(form.querySelector('[name="copie"]')?.value ?? '1', 10) || 1,
+      rating: starPicker?._getRating() || undefined,
+      tags: tagsPicker?._getTags() ?? [],
+      note: getValue('note') || undefined,
     };
 
     saveBtn.disabled = true;
@@ -481,9 +481,9 @@ const editor = (() => {
       overlay.className = 'book-card__overlay';
       overlay.setAttribute('aria-hidden', 'true');
 
-      const editBtn = _overlayBtn('✎', 'Modifica', '',                    () => openEdit(bookId));
-      const dupBtn  = _overlayBtn('⧉', 'Duplica',  'overlay-btn--duplicate', () => openDuplicate(bookId));
-      const delBtn  = _overlayBtn('✕', 'Elimina',  'overlay-btn--danger',    () => deleteBook(bookId));
+      const editBtn = _overlayBtn('✎', 'Modifica', '', () => openEdit(bookId));
+      const dupBtn = _overlayBtn('⧉', 'Duplica', 'overlay-btn--duplicate', () => openDuplicate(bookId));
+      const delBtn = _overlayBtn('✕', 'Elimina', 'overlay-btn--danger', () => deleteBook(bookId));
 
       overlay.appendChild(editBtn);
       overlay.appendChild(dupBtn);

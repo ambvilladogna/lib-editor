@@ -43,6 +43,12 @@ const store = (() => {
     );
   }
 
+  function _sortTags(arr) {
+    return arr.slice().sort((a, b) =>
+      String(a.label ?? '').localeCompare(String(b.label ?? ''), undefined, { numeric: true, sensitivity: 'base' })
+    );
+  }
+
   // ── Public API ─────────────────────────────────────────────────────────────
 
   return {
@@ -60,6 +66,7 @@ const store = (() => {
     },
 
     setConfig(config) {
+      config.tags = _sortTags(config.tags);
       _config = config;
       _notify();
     },

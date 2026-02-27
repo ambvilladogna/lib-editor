@@ -32,8 +32,15 @@ async function loadData() {
         initializeFilters();
         filterBooks();
         editor.init();
+        tags.init();   // builds the tag panel DOM (hidden until opened)
+        _buildManageTagsLink();
         sync.init();   // appends sync widget to .header__nav
         quit.init();   // appends quit button to .header__nav (after sync widget)
+
+        // Re-render tag filter buttons whenever config changes (tag add/rename/delete)
+        store.onChange(() => {
+            _refreshTagFilters();
+        });
 
     } catch (error) {
         console.error('Error loading data:', error);
@@ -45,10 +52,45 @@ async function loadData() {
 
 function initializeFilters() {
     totalCount.textContent = store.books.length;
+    _refreshTagFilters();
+}
 
-    tagsContainer.innerHTML = store.config.tags.map(tag =>
-        `<button class="tag-filter" data-tag="${tag.label}">${tag.label}</button>`
-    ).join('');
+/**
+ * Rebuilds the tag filter buttons from current store.config.
+ * Called on initial load and after any tag mutation.
+ */
+function _refreshTagFilters() {
+    tagsContainer.innerHTML = '';
+
+    (store.config?.tags ?? []).forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-filter' + (activeTag === tag.label ? ' active' : '');
+        btn.dataset.tag = tag.label;
+        btn.textContent = tag.label;
+        tagsContainer.appendChild(btn);
+    });
+
+    // If the previously active tag no longer exists, clear it
+    if (activeTag && !(store.config?.tags ?? []).some(t => t.label === activeTag)) {
+        activeTag = null;
+        filterBooks();
+    }
+}
+
+/**
+ * Appends the "Gestisci tag ✎" link right after the tag filter buttons.
+ * Placed inside .filter-group (parent of #filter-tags).
+ */
+function _buildManageTagsLink() {
+    const filterGroup = tagsContainer.closest('.filter-group');
+    if (!filterGroup) return;
+
+    const link = document.createElement('button');
+    link.className = 'tags-manage-link';
+    link.setAttribute('aria-label', 'Gestisci le categorie del catalogo');
+    link.innerHTML = '✎ <span>Gestisci</span>';
+    link.addEventListener('click', () => tags.open());
+    filterGroup.appendChild(link);
 }
 
 // ── Render ──────────────────────────────────────────────────────────────────
@@ -104,6 +146,7 @@ function renderBooks(filteredBooks) {
     }
 
     visibleCount.textContent = filteredBooks.length;
+    totalCount.textContent = store.books.length;
 
     if (typeof editor !== 'undefined') {
         editor.attachOverlays();
@@ -145,9 +188,6 @@ function filterBooks() {
         return matchesSearch && matchesTag && matchesRating;
     });
 
-    // Keep total count in sync with store (may change after add/delete)
-    totalCount.textContent = store.books.length;
-
     renderBooks(filtered);
 }
 
@@ -155,8 +195,8 @@ function filterBooks() {
 
 searchInput.addEventListener('input', filterBooks);
 
+// Tag filter clicks — delegated because buttons are rebuilt on config change
 tagsContainer.addEventListener('click', (e) => {
-    const tagFilterButtons = document.querySelectorAll('.tag-filter');
     const button = e.target.closest('.tag-filter');
     if (!button) return;
 
@@ -165,7 +205,7 @@ tagsContainer.addEventListener('click', (e) => {
         activeTag = null;
         button.classList.remove('active');
     } else {
-        tagFilterButtons.forEach(b => b.classList.remove('active'));
+        tagsContainer.querySelectorAll('.tag-filter').forEach(b => b.classList.remove('active'));
         activeTag = tag;
         button.classList.add('active');
     }

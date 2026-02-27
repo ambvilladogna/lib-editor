@@ -3,6 +3,7 @@ import { handleBooks } from "./routes/books";
 import { handleConfig } from "./routes/config";
 import { handleSync } from "./routes/sync";
 import { handleStatus, setStartupStatus } from "./routes/status";
+import { handleTags } from "./routes/tags";
 import { pull } from "./lib/git";
 import { handleQuit } from "./routes/quit";
 
@@ -53,6 +54,10 @@ Bun.serve({
 
     if (url.pathname === "/api/config") {
       return handleConfig(req).catch(apiError);
+    }
+
+    if (url.pathname.startsWith("/api/tags")) {
+      return handleTags(req).catch(apiError);
     }
 
     if (url.pathname.startsWith("/api/sync")) {

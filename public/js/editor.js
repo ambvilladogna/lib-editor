@@ -10,6 +10,7 @@
  * Depends on:
  *  - notify.js  (must be loaded first)
  *  - store.js   (must be loaded first)
+ *  - tags.js    (must be loaded first — used by the "+ nuovo tag" chip)
  *  - script.js  calls store.setFilterFn(filterBooks) so store.filterBooks() works
  *
  * Public API (window.editor):
@@ -255,24 +256,65 @@ const editor = (() => {
     tagsPicker.setAttribute('role', 'group');
     tagsPicker.setAttribute('aria-label', 'Categorie');
 
-    const availableTags = (store.config?.tags ?? []).map(t => t.label);
+    /**
+     * Rebuilds the tag chips from the current store config.
+     * Called once on form creation and again after returning from the tag panel.
+     */
+    function _refreshTagChips() {
+      // Remove all existing chips (but keep the "+ nuovo" button if present)
+      tagsPicker.querySelectorAll('.tags-picker__tag').forEach(el => el.remove());
 
-    availableTags.forEach(label => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'tags-picker__tag' + (selectedTags.has(label) ? ' tags-picker__tag--selected' : '');
-      btn.textContent = label;
-      btn.addEventListener('click', () => {
-        if (selectedTags.has(label)) {
-          selectedTags.delete(label);
-          btn.classList.remove('tags-picker__tag--selected');
+      const availableTags = (store.config?.tags ?? []).map(t => t.label);
+
+      // Insert chips before the "+ nuovo" button
+      const newBtn = tagsPicker.querySelector('.tags-picker__new');
+      availableTags.forEach(label => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tags-picker__tag' + (selectedTags.has(label) ? ' tags-picker__tag--selected' : '');
+        btn.textContent = label;
+        btn.addEventListener('click', () => {
+          if (selectedTags.has(label)) {
+            selectedTags.delete(label);
+            btn.classList.remove('tags-picker__tag--selected');
+          } else {
+            selectedTags.add(label);
+            btn.classList.add('tags-picker__tag--selected');
+          }
+        });
+        if (newBtn) {
+          tagsPicker.insertBefore(btn, newBtn);
         } else {
-          selectedTags.add(label);
-          btn.classList.add('tags-picker__tag--selected');
+          tagsPicker.appendChild(btn);
         }
       });
-      tagsPicker.appendChild(btn);
+    }
+
+    // Initial render of chips
+    _refreshTagChips();
+
+    // "+ nuovo tag" chip — opens the tag panel; chips refresh when it closes
+    const newTagBtn = document.createElement('button');
+    newTagBtn.type = 'button';
+    newTagBtn.className = 'tags-picker__new';
+    newTagBtn.textContent = '＋ nuovo';
+    newTagBtn.setAttribute('aria-label', 'Aggiungi nuova categoria');
+    newTagBtn.addEventListener('click', () => {
+      if (typeof tags !== 'undefined') {
+        tags.open();
+        // Re-sync chips when the tag panel closes (config may have changed)
+        const waitForClose = () => {
+          const panel = document.querySelector('.editor-panel[aria-labelledby="tags-panel-title"]');
+          if (panel && !panel.classList.contains('editor-panel--open')) {
+            _refreshTagChips();
+          } else {
+            requestAnimationFrame(waitForClose);
+          }
+        };
+        requestAnimationFrame(waitForClose);
+      }
     });
+    tagsPicker.appendChild(newTagBtn);
 
     tagsPicker._getTags = () => [...selectedTags];
 

@@ -1,8 +1,0 @@
-The window._books / window._config / window._filterBooks bridge works fine for now, 
-but as you add more features (sync UI, config editing, etc.) that pattern will start to feel awkward. 
-At some point it might be worth extracting a small store.js — just a plain object holding the shared state and mutation helpers — that both script.js and editor.js import from.
-No framework needed, just a cleaner seam.
-The other thing on the horizon is the sync flow — right now edits hit the API and update the JSON files, 
-but nothing pushes to GitHub Pages. The POST /api/sync/push endpoint is already there waiting. 
-A natural place for that UI would be a small status indicator in the header (dirty/ahead count) with a push button, using notify.js for feedback. 
-That would round out the full edit → commit → deploy loop.

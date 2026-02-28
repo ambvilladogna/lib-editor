@@ -11,7 +11,8 @@
   },
   "scripts": {
     "start": "bun run start.ts",
-    "dev": "bun run --hot server.ts"
+    "dev": "bun run --hot server.ts",
+    "build-win": "bun build ./start.ts --compile --windows-icon=./assets/books.ico --windows-hide-console --outfile biblioteca-micologica"
   },
   "dependencies": {
     "serve-static-bun": "^0.5.3"
